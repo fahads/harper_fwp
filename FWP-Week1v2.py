@@ -133,18 +133,107 @@ def identify_components(df):
     plt.grid(True, axis='y')
     plt.show()
 
+def student_exercise(df):
+    """
+    Template for student exercise with step-by-step instructions
+    """
+    print("STUDENT EXERCISE INSTRUCTIONS")
+    print("============================")
+    print("1. Calculate and plot quarterly passenger totals")    
+    print("2. Find the quarter with the highest average passengers")
+    print("3. Calculate the percentage growth from the first year to the last year")
+    print("4. Create a 6-month rolling average and plot it against the original data")
+    
+    # Exercise 1: Calculate quarterly passenger totals
+    quarterly_totals = df.resample('Q')['Passengers'].sum()
+    plt.figure(figsize=(12,6))
+    quarterly_totals.plot(kind='bar')
+    plt.title('Quarterly Passenger Totals')
+    plt.xlabel('Quarter')
+    plt.ylabel('Total Passengers (thousands)')
+    plt.grid(True, axis='y')
+    plt.show()
+
+    # Exercise 2: Find quarter with highest average
+    quarterly_avg = df.resample('Q')['Passengers'].mean()
+    highest_quarter = quarterly_avg.idxmax()
+    print(f"\nQuarter with the highest avg passengers: {highest_quarter.quarter}Q{highest_quarter.year}")
+    print(f"Average passengers: {quarterly_avg.max():.2f} thousand")
+
+    # Exercise 3: Calculate percentage growth from first to last year
+    first_year = df.loc['1949'].mean()['Passengers']
+    last_year = df.loc['1960'].mean()['Passengers']
+    growth = ((last_year / first_year) - 1) * 100
+    print(f"\nGrowth from 1949 to 1960: {growth:.2f}%")
+
+    # Exercise 4: Create and plot a 6-month rolling average
+
+    rolling_avg = df['Passengers'].rolling(window=6).mean()
+    plt.figure(figsize=(12,6))
+    plt.plot(df.index, df['Passengers'], label="Monthly Passengers", alpha=0.7)
+    plt.plot(df.index, rolling_avg, label='6-month moving average', linewidth=2)
+    plt.title('Monthly Passengers with 6-month Moving Average')
+    plt.xlabel('Date')
+    plt.ylabel('Passengers (thousands)')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+
+
 # Sample homework assignment
-def homework_template():
+def homework_template(df):
     """
     Template code for homework assignment
     """
     print("HOMEWORK ASSIGNMENT")
     print("==================")
     print("1. Load the airline passenger dataset")
+    print(df.head())
+    # Part 2
     print("2. Create a new column showing the difference in passengers from the same month in the previous year")
+    airline_df = df
+    airline_df['Passengers_PrevYear'] = airline_df['Passengers'].shift(12)
+    airline_df['YoY_Difference'] = airline_df['Passengers'] - airline_df['Passengers_PrevYear']
+    airline_df['YoY_Pct_Change'] = (airline_df['YoY_Difference'] / airline_df['Passengers_PrevYear'] * 100)
+    print("\nDataset with year-over-year differences:")
+    print(airline_df.tail(15))
+    # Part 3
     print("3. Identify the month with the largest year-over-year increase")
+    valid_data = airline_df.dropna()
+    max_increase_month = valid_data['YoY_Difference'].idxmax()
+    max_increase_value = valid_data.loc[max_increase_month, 'YoY_Difference']
+    max_increase_pct = valid_data.loc[max_increase_month, 'YoY_Pct_Change']
+    print(f"\nMonth with largest year-over-year increase: {max_increase_month.strftime('%B %Y')}")
+    print(f"Increase: {max_increase_value:.2f} thousand passengers ({max_increase_pct:.2f}%)")
+    # Part 4
     print("4. Create a visualization showing the percentage change in passengers for each year")
+    plt.figure(figsize=(14, 7))
+    plt.plot(valid_data.index, valid_data['YoY_Pct_Change'], marker='o', linestyle='-', linewidth=2, markersize=4)
+    plt.axhline(y=0, color='r', linestyle='-', alpha=0.3)
+    plt.fill_between(valid_data.index, valid_data['YoY_Pct_Change'], 0, 
+                    where=(valid_data['YoY_Pct_Change'] >= 0), color='green', alpha=0.3, interpolate=True)
+    plt.fill_between(valid_data.index, valid_data['YoY_Pct_Change'], 0, 
+                    where=(valid_data['YoY_Pct_Change'] < 0), color='red', alpha=0.3, interpolate=True)
+    plt.title('Year-over-Year Percentage Change in Airline Passengers (1950-1960)', fontsize=16)
+    plt.xlabel('Date', fontsize=12)
+    plt.ylabel('Percentage Change (%)', fontsize=12)
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.show()
     print("5. Write a brief analysis of the patterns you observe in the data")
+    # Clear seasonal pattern with peaks during the summmer months
+    # Lowest passenger numbers are typically in Februrary
+    # 1949 - 1960 -> 300% increase in passengers
+    # the compound growth rate is appromixately 12-13%
+    # growth accelerated in the mid 1950s, possibly reflecting a post-war economic recovery
+    # introduction of commercial jet aircraft in the late 1950s
+    # rising middle class with disposable income for leisure travel
+    # increasing globalization of business
+    # // modern implications
+    # shows the early growth phase of commercial aviation
+    # we see the same seasonal patterns today but with much higher volumes
+
 
 # Main demonstration
 if __name__ == "__main__":
@@ -153,7 +242,7 @@ if __name__ == "__main__":
     
     if airline_df is not None:
         # Demonstrate basic exploration
-        explore_time_series(airline_df)
+        # explore_time_series(airline_df)
         
         # Identify time series components
         # identify_components(airline_df)
@@ -162,4 +251,4 @@ if __name__ == "__main__":
         # student_exercise(airline_df)
         
         # Show homework template
-        # homework_template()
+        homework_template(airline_df)
